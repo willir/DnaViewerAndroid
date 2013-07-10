@@ -130,8 +130,6 @@ public class GraphView extends View implements OnLongClickListener {
         if (!hasData())
             return;
 
-        Log.d(DLog.TAG, "onDraw");
-
         for(int ibase = 0; ibase < 4; ibase++) {
             mPaintLine.setColor(BASES_MAP_COLOR.get(mDnaData.basesOrder.charAt(ibase)));
             drawSequenceGraph(canvas, ibase, mPaintLine);
@@ -142,12 +140,35 @@ public class GraphView extends View implements OnLongClickListener {
         }
     }
 
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if(!hasData()) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            return;
+        }
+
+        int height = getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec);
+
+        int desiredWidth = mDnaData.lastNonTrashPoint + GRAPH_HORIZONTAL_PADDING;
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+
+        int width;
+        if (widthMode == MeasureSpec.EXACTLY) {
+            width = widthSize;
+        } else if (widthMode == MeasureSpec.AT_MOST) {
+            width = Math.min(desiredWidth, widthSize);
+        } else {
+            width = desiredWidth;
+        }
+
+        setMeasuredDimension(width, height);
+    }
+
     public void setDnaData(DnaAbiData dnaAbiData) {
         Log.d(DLog.TAG, "setDnaData");
-        setLayoutParams(new FrameLayout.LayoutParams(dnaAbiData.lastNonTrashPoint + GRPAH_PADDING_LEFT, getHeight()));
-        setMinimumWidth(dnaAbiData.lastNonTrashPoint + GRAPH_HORIZONTAL_PADDING);
         mDnaData = dnaAbiData;
-        invalidate();
+        requestLayout();
     }
 
     @Override
