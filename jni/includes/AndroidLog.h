@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 
-#define __DEX_TAG__ "AntiSpam"
+#define __DEX_TAG__ "DnaReader"
 
 #define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, __DEX_TAG__, __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, __DEX_TAG__, __VA_ARGS__))

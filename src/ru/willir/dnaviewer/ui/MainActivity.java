@@ -2,6 +2,7 @@ package ru.willir.dnaviewer.ui;
 
 import ru.willir.dnaviewer.R;
 import ru.willir.dnaviewer.utils.DLog;
+import ru.willir.dnaviewer.utils.DnaAbiData;
 import ru.willir.dnaviewer.utils.DnaViewNative;
 import ru.willir.dnaviewer.utils.FileUtils;
 import android.net.Uri;
@@ -11,10 +12,6 @@ import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Toast;
 import android.content.Intent;
 
@@ -22,15 +19,19 @@ public class MainActivity extends Activity {
 
     private static final int FILE_SELECT_CODE = 0;
 
+    private GraphView mGraphView = null;
+    private DnaAbiData mDnaAbiData = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mGraphView = (GraphView) findViewById(R.id.graph_view);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.activity_main, menu);
         return true;
     }
@@ -62,7 +63,11 @@ public class MainActivity extends Activity {
                 // Get the path
                 String path = FileUtils.getPath(this, uri);
                 Log.d(DLog.TAG, "File Path: " + path);
-                DnaViewNative.test1(path);
+
+                mDnaAbiData = DnaViewNative.test1(path);
+                Log.d(DLog.TAG, "dnaAbiData: " + mDnaAbiData);
+                mGraphView.setMinimumWidth(mDnaAbiData.lastNonTrashPoint + 100);
+                mGraphView.setDnaData(mDnaAbiData);
             }
             break;
         }

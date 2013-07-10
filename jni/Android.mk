@@ -31,6 +31,8 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := dna_viewer
 LOCAL_SRC_FILES := \
 		main.cpp \
+		src/AbiReader.cpp \
+		src/CToJavaConverter.cpp \
 
 LOCAL_C_INCLUDES += \
 		$(LOCAL_PATH)/includes \

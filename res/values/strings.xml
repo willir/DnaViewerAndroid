@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">DnaViewer</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="main_hint">Select menu -> Open DNA file</string>
     <string name="menu_settings">Settings</string>
     <string name="open_file">Open DNA file</string>
 

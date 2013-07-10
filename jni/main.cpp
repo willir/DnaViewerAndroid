@@ -11,15 +11,9 @@
 #include <stdlib.h>
 #include <string>
 
-#include "AndroidLog.hpp"
-
-#include "ajarch.h"
-#include "ajarr.h"
-#include "ajstr.h"
-#include "ajseqabi.h"
-#include "ajmess.h"
-#include "ajfile.h"
-
+#include "AndroidLog.h"
+#include "AbiReader.h"
+#include "CToJavaConverter.h"
 
 using namespace std;
 
@@ -37,20 +31,24 @@ string jstringToStdString(JNIEnv* env, jstring str) {
     return res;
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_ru_willir_dnaviewer_utils_DnaViewNative_test1(JNIEnv* env, jobject thiz, jstring filePathJ) {
+	CToJavaConverter::createInstance(env);
+	CToJavaConverter *cToJava = CToJavaConverter::getInstance();
+
 	string filePath = jstringToStdString(env, filePathJ);
-	AjPFile   fp             = NULL;
-	const char *fname = NULL;
 
 	LOGD("test1:%s", filePath.c_str());
 
-	fp = ajFileNewInNameC(filePath.c_str());
-    fname = ajFileGetPrintnameC(fp);
+	AbiReader abiReader(filePath);
 
-	LOGD("test1 fname:%s", fname);
+	LOGD("is ok:%d", abiReader.isSequenceOk());
 
-	return 0;
+	jobject res = cToJava->abiReaderToJava(&abiReader);
+
+	CToJavaConverter::destroyInstance();
+
+	return res;
 }
 
 }

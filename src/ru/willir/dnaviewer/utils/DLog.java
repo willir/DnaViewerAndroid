@@ -4,7 +4,7 @@ import android.util.Log;
 
 final public class DLog {
 	
-	public final static String TAG = "HandsFree";
+	public final static String TAG = "DnaReader";
 
 	public static final void i(String msg) {
 		Log.i(TAG, msg);

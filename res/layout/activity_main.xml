@@ -9,6 +9,18 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:text="@string/hello_world" />
+        android:text="@string/main_hint" />
+
+    <HorizontalScrollView 
+		    android:id="@+id/hscroll"
+		    android:layout_width="fill_parent" 
+		    android:layout_height="fill_parent"> 
+	    <ru.willir.dnaviewer.ui.GraphView 
+			  android:id="@+id/graph_view"
+		      android:layout_width="wrap_content" 
+			  android:layout_height="fill_parent"
+			  android:background="@android:color/white"
+			  android:padding="10dip" />
+	</HorizontalScrollView>
 
 </RelativeLayout>
