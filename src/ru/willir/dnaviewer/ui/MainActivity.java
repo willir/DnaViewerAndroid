@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
                 String path = FileUtils.getPath(this, uri);
                 Log.d(DLog.TAG, "File Path: " + path);
 
-                mDnaAbiData = DnaViewNative.test1(path);
+                mDnaAbiData = DnaViewNative.parseAbiFile(path);
                 Log.d(DLog.TAG, "dnaAbiData: " + mDnaAbiData);
                 mGraphView.setMinimumWidth(mDnaAbiData.lastNonTrashPoint + 100);
                 mGraphView.setDnaData(mDnaAbiData);

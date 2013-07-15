@@ -32,7 +32,7 @@ string jstringToStdString(JNIEnv* env, jstring str) {
 }
 
 JNIEXPORT jobject JNICALL
-Java_ru_willir_dnaviewer_utils_DnaViewNative_test1(JNIEnv* env, jobject thiz, jstring filePathJ) {
+Java_ru_willir_dnaviewer_utils_DnaViewNative_parseAbiFile(JNIEnv* env, jobject thiz, jstring filePathJ) {
 	CToJavaConverter::createInstance(env);
 	CToJavaConverter *cToJava = CToJavaConverter::getInstance();
 
