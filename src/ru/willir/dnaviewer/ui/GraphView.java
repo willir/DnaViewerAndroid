@@ -6,6 +6,7 @@ import java.util.TreeMap;
 
 import ru.willir.dnaviewer.utils.DLog;
 import ru.willir.dnaviewer.utils.DnaAbiData;
+import ru.willir.dnaviewer.utils.SettingsUtils;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -19,22 +20,74 @@ import android.view.View.OnLongClickListener;
 
 public class GraphView extends View implements OnLongClickListener {
 
-    private static final int GRAPH_HEADER_HEIGHT = 40;
-    private static final int GRPAH_PADDING_LEFT = 8;
-    private static final int GRPAH_PADDING_RIGHT = 5;
-    private static final int GRPAH_PADDING_BOTTOM = 8;
-    private static final int GRAPH_HORIZONTAL_PADDING = GRPAH_PADDING_LEFT + GRPAH_PADDING_RIGHT;
+    private static Sizes mSizes = null;
 
-    private static final int IMMEDIATELY_DRAW_VERTICAL_LINE_HEADER_HEIGHT = 50;
+    private class Sizes {
 
-    private static final int GRAPH_TEXT_Y_POS = 20;
-    private static final int GRAPH_TEXT_SIZE  = 12;
+        private static final int GRAPH_HEADER_HEIGHT = 40;
+        private static final int GRPAH_PADDING_LEFT = 8;
+        private static final int GRPAH_PADDING_RIGHT = 5;
+        private static final int GRPAH_PADDING_BOTTOM = 8;
 
-    private static final int VERICAL_MOUSE_LINE_COLOR = Color.LTGRAY;
-    private static final int VERICAL_MOUSE_LINE_WIDTH = 1;
+        private static final float TOUCHS_SCREEN_PERCENT = (float) 0.50;
 
-    private static final int LINE_STROKE_WIDTH = 1;
-    private static final int TEXT_STROKE_WIDTH = 1;
+        private static final int GRAPH_TEXT_Y_POS = 20;
+        private static final int GRAPH_TEXT_SIZE = 12;
+
+        public int mGraphWidth;
+
+        public int mHeaderHeight = GRAPH_HEADER_HEIGHT;
+        public int mPaddingLeft = GRPAH_PADDING_LEFT;
+        public int mPaddingRight = GRPAH_PADDING_RIGHT;
+        public int mPaddingBottom = GRPAH_PADDING_BOTTOM;
+        public int mHorizontalPadding = mPaddingLeft + mPaddingRight;
+
+        public int mTouchsHeight;
+
+        public int mTextYPos = GRAPH_TEXT_Y_POS;
+        public int mTextSize = GRAPH_TEXT_SIZE;
+
+        public final int mCursorLineColor = Color.LTGRAY;
+        public final int mCursorLineWidth = 1;
+
+        public final int mLineStrokeWidth = 1;
+        public final int mTextStrokeWidth = 1;
+
+        public float mXMult;
+
+        public Sizes(float xScale, float yScale) {
+            if(!hasData())
+                return;
+
+            int height = getHeight();
+
+            mXMult = xScale;
+
+            mHeaderHeight = GRAPH_HEADER_HEIGHT;
+            mPaddingLeft = GRPAH_PADDING_LEFT;
+            mPaddingRight = GRPAH_PADDING_RIGHT;
+            mPaddingBottom = GRPAH_PADDING_BOTTOM;
+            mHorizontalPadding = mPaddingLeft + mPaddingRight;
+
+            mTouchsHeight = (int) (height * TOUCHS_SCREEN_PERCENT);
+
+            mTextYPos = GRAPH_TEXT_Y_POS;
+            mTextSize = GRAPH_TEXT_SIZE;
+
+            mGraphWidth = (int) Math.ceil(mDnaData.lastNonTrashPoint * mXMult + mHorizontalPadding);
+        }
+    }
+
+    private void reinitSizes() {
+        mSizes = new Sizes(mSettingsUtils.getXScale(), 1);
+    }
+
+    private Sizes getSizes() {
+        if(mSizes == null)
+            reinitSizes();
+
+        return mSizes;
+    }
 
     private static final Map<Character, Integer> BASES_MAP_COLOR;
     static {
@@ -49,38 +102,45 @@ public class GraphView extends View implements OnLongClickListener {
     private Paint mPaintVerticalLine = new Paint();
     private Paint mPaintLine = new Paint();
     private Paint mPaintText = new Paint();
+    private float lastClickXOrd = 0;
+    private float verticalLineXOrd = 0;
+
+    private SettingsUtils mSettingsUtils = null;
     private DnaAbiData mDnaData = null;
-    private float lastClickXOrd   = 0;
-    private float verticalLineXOrd   = 0;
 
     public GraphView(Context context) {
         super(context);
-        settingPaints();
-        Log.d(DLog.TAG, "GraphView::GraphView(context)");
+        init(context);
     }
 
     public GraphView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
-        settingPaints();
-        Log.d(DLog.TAG, "GraphView::GraphView(context, attributeSet)");
+        init(context);
     }
 
     public GraphView(Context context, AttributeSet attributeSet, int defStyle) {
         super(context, attributeSet, defStyle);
+        init(context);
+    }
+
+    private void init(Context ctx) {
+        mSettingsUtils = SettingsUtils.getInstance(ctx);
+        reinitSizes();
         settingPaints();
-        Log.d(DLog.TAG, "GraphView::GraphView(context, attributeSet, defStyle)");
     }
 
     private void settingPaints() {
-        mPaintLine.setStrokeWidth(LINE_STROKE_WIDTH);
+        Sizes sizes = getSizes();
+
+        mPaintLine.setStrokeWidth(sizes.mLineStrokeWidth);
 
         Typeface tf = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
-        mPaintText.setStrokeWidth(TEXT_STROKE_WIDTH);
+        mPaintText.setStrokeWidth(sizes.mTextStrokeWidth);
         mPaintText.setTypeface(tf);
-        mPaintText.setTextSize(GRAPH_TEXT_SIZE);
+        mPaintText.setTextSize(sizes.mTextSize);
 
-        mPaintVerticalLine.setColor(VERICAL_MOUSE_LINE_COLOR);
-        mPaintVerticalLine.setStrokeWidth(VERICAL_MOUSE_LINE_WIDTH);
+        mPaintVerticalLine.setColor(sizes.mCursorLineColor);
+        mPaintVerticalLine.setStrokeWidth(sizes.mCursorLineWidth);
 
         this.setOnLongClickListener(this);
     }
@@ -90,7 +150,9 @@ public class GraphView extends View implements OnLongClickListener {
     }
 
     private void drawSequenceGraph(Canvas canvas, int ibase, Paint paint) {
-        final int yMax = getHeight() - GRAPH_HEADER_HEIGHT - GRPAH_PADDING_BOTTOM;
+        Sizes sizes = getSizes();
+
+        final int yMax = getHeight() - sizes.mHeaderHeight - sizes.mPaddingBottom;
 
         float xPointPrev = 0;
         float yPointPrev = 0;
@@ -98,9 +160,9 @@ public class GraphView extends View implements OnLongClickListener {
         for (int x = 0; x < mDnaData.lastNonTrashPoint; ++x) {
             float y = (float) mDnaData.trace[ibase][x];
             int yNormalized = (int) (y / mDnaData.tmax * yMax);
-            yNormalized = yMax - yNormalized + GRAPH_HEADER_HEIGHT;
+            yNormalized = yMax - yNormalized + sizes.mHeaderHeight;
 
-            float xPoint = GRPAH_PADDING_LEFT + x;
+            float xPoint = sizes.mPaddingLeft + x * sizes.mXMult;
             float yPoint = yNormalized;
 
             if (x != 0)
@@ -112,13 +174,16 @@ public class GraphView extends View implements OnLongClickListener {
     }
 
     private void drawSequenceText(Canvas canvas) {
+        Sizes sizes = getSizes();
+
         float charHalfWidth = mPaintText.measureText("C") / 2;
-        for(int iloop = 0; iloop < mDnaData.basePositions.length; iloop++) {
+        for (int iloop = 0; iloop < mDnaData.basePositions.length; iloop++) {
             char chr = mDnaData.nseq.charAt(iloop);
-            float xPos = GRPAH_PADDING_LEFT + mDnaData.basePositions[iloop] - charHalfWidth;
+            float xPos = mDnaData.basePositions[iloop] * sizes.mXMult;
+            xPos += sizes.mPaddingLeft - charHalfWidth;
 
             mPaintText.setColor(BASES_MAP_COLOR.get(chr));
-            canvas.drawText(Character.toString(chr), xPos, GRAPH_TEXT_Y_POS, mPaintText);
+            canvas.drawText(Character.toString(chr), xPos, sizes.mTextYPos, mPaintText);
         }
     }
 
@@ -129,26 +194,28 @@ public class GraphView extends View implements OnLongClickListener {
         if (!hasData())
             return;
 
-        for(int ibase = 0; ibase < 4; ibase++) {
+        for (int ibase = 0; ibase < 4; ibase++) {
             mPaintLine.setColor(BASES_MAP_COLOR.get(mDnaData.basesOrder.charAt(ibase)));
             drawSequenceGraph(canvas, ibase, mPaintLine);
         }
         drawSequenceText(canvas);
-        if(verticalLineXOrd > 0) {
+        if (verticalLineXOrd > 0) {
             canvas.drawLine(verticalLineXOrd, 0, verticalLineXOrd, getHeight(), mPaintVerticalLine);
         }
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if(!hasData()) {
+        if (!hasData()) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             return;
         }
 
+        Sizes sizes = getSizes();
+
         int height = getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec);
 
-        int desiredWidth = mDnaData.lastNonTrashPoint + GRAPH_HORIZONTAL_PADDING;
+        int desiredWidth = sizes.mGraphWidth;
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
 
@@ -162,6 +229,7 @@ public class GraphView extends View implements OnLongClickListener {
         }
 
         setMeasuredDimension(width, height);
+        reinitSizes();
     }
 
     public void setDnaData(DnaAbiData dnaAbiData) {
@@ -170,12 +238,19 @@ public class GraphView extends View implements OnLongClickListener {
         requestLayout();
     }
 
+    public void onSettingsChanged() {
+        reinitSizes();
+        requestLayout();
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        Sizes sizes = getSizes();
+
         switch (event.getAction()) {
         case MotionEvent.ACTION_DOWN:
             lastClickXOrd = event.getX();
-            if(event.getY() < IMMEDIATELY_DRAW_VERTICAL_LINE_HEADER_HEIGHT)
+            if (event.getY() < sizes.mTouchsHeight)
                 postDrawVerticalLine();
             break;
         default:

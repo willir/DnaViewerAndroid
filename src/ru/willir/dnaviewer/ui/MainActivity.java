@@ -17,7 +17,8 @@ import android.content.Intent;
 
 public class MainActivity extends Activity {
 
-    private static final int FILE_SELECT_CODE = 0;
+    private static final int RES_CODE_FILE_SELECT = 1;
+    private static final int RES_CODE_SETTINGS = 2;
 
     private GraphView mGraphView = null;
     private DnaAbiData mDnaAbiData = null;
@@ -37,17 +38,17 @@ public class MainActivity extends Activity {
     }
 
     private void showFileChooser() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT); 
-        intent.setType("*/*.ab1"); 
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*.ab1");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
 
         try {
             startActivityForResult(
                     Intent.createChooser(intent, "Select a File to Upload"),
-                    FILE_SELECT_CODE);
+                    RES_CODE_FILE_SELECT);
         } catch (android.content.ActivityNotFoundException ex) {
             // Potentially direct the user to the Market with a Dialog
-            Toast.makeText(this, "Please install a File Manager.", 
+            Toast.makeText(this, "Please install a File Manager.",
                     Toast.LENGTH_SHORT).show();
         }
     }
@@ -55,7 +56,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case FILE_SELECT_CODE:
+        case RES_CODE_FILE_SELECT:
             if (resultCode == RESULT_OK) {
                 // Get the Uri of the selected file 
                 Uri uri = data.getData();
@@ -70,6 +71,9 @@ public class MainActivity extends Activity {
                 mGraphView.setDnaData(mDnaAbiData);
             }
             break;
+        case RES_CODE_SETTINGS:
+            mGraphView.onSettingsChanged();
+            break;
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -77,8 +81,13 @@ public class MainActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-        case R.id.load_file:
+        case R.id.menu_load_file:
             showFileChooser();
+            break;
+        case R.id.menu_settings:
+            Intent intent = new Intent();
+            intent.setClass(MainActivity.this, SettingsActivity.class);
+            startActivityForResult(intent, RES_CODE_SETTINGS);
             break;
 
         default:
