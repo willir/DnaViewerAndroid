@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 import android.content.Intent;
+import android.content.res.Configuration;
 
 public class MainActivity extends Activity {
 
@@ -94,5 +95,11 @@ public class MainActivity extends Activity {
             break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mGraphView.onSettingsChanged();
     }
 }
