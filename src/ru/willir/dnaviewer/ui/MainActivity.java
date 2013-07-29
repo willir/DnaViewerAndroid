@@ -1,6 +1,7 @@
 package ru.willir.dnaviewer.ui;
 
 import ru.willir.dnaviewer.R;
+import ru.willir.dnaviewer.utils.Constants;
 import ru.willir.dnaviewer.utils.DLog;
 import ru.willir.dnaviewer.utils.DnaAbiData;
 import ru.willir.dnaviewer.utils.DnaViewNative;
@@ -8,11 +9,11 @@ import ru.willir.dnaviewer.utils.FileUtils;
 import android.net.Uri;
 import android.os.Bundle;
 
-import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 
@@ -49,8 +50,7 @@ public class MainActivity extends Activity {
                     RES_CODE_FILE_SELECT);
         } catch (android.content.ActivityNotFoundException ex) {
             // Potentially direct the user to the Market with a Dialog
-            Toast.makeText(this, "Please install a File Manager.",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please install a File Manager.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -81,20 +81,22 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-        case R.id.menu_load_file:
+        int id = item.getItemId();
+        if(id == R.id.menu_load_file) {
             showFileChooser();
-            break;
-        case R.id.menu_settings:
+        } else if(id == R.id.menu_settings) {
             Intent intent = new Intent();
             intent.setClass(MainActivity.this, SettingsActivity.class);
             startActivityForResult(intent, RES_CODE_SETTINGS);
-            break;
-
-        default:
-            break;
+        } else if(id == R.id.menu_dna_text) {
+            if(mDnaAbiData == null)
+                return true;
+            DnaTextDialog dialog = new DnaTextDialog(mDnaAbiData.nseq);
+            dialog.show(getFragmentManager(), Constants.TAG_DIALOG_DNA_TEXT);
+        } else {
+            //Nothing
         }
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
     @Override
