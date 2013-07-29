@@ -4,16 +4,10 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity" >
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:text="@string/main_hint" />
-
     <HorizontalScrollView 
 		    android:id="@+id/hscroll"
-		    android:layout_width="fill_parent" 
+		    android:layout_alignParentTop="true"
+		    android:layout_width="0dp" 
 		    android:layout_height="fill_parent"> 
 	    <ru.willir.dnaviewer.ui.GraphView 
 			  android:id="@+id/graph_view"
@@ -22,5 +16,11 @@
 			  android:background="@android:color/white"
 			  android:padding="10dip" />
 	</HorizontalScrollView>
+
+    <FrameLayout
+	        android:id="@+id/settings_container"
+	        android:layout_below="@id/hscroll"
+	        android:layout_width="0dp"
+	        android:layout_height="match_parent" />
 
 </RelativeLayout>

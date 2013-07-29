@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 import android.app.Activity;
 import android.content.Intent;
@@ -24,6 +25,7 @@ public class MainActivity extends Activity {
 
     private GraphView mGraphView = null;
     private DnaAbiData mDnaAbiData = null;
+    private FrameLayout mSettingsContainer = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +33,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         mGraphView = (GraphView) findViewById(R.id.graph_view);
+        mSettingsContainer = (FrameLayout) findViewById(R.id.settings_container);
     }
 
     @Override
@@ -85,10 +88,16 @@ public class MainActivity extends Activity {
         if(id == R.id.menu_load_file) {
             showFileChooser();
         } else if(id == R.id.menu_settings) {
-            Intent intent = new Intent();
+
+            SettingsMainFragment fragment = new SettingsMainFragment();
+            getFragmentManager().beginTransaction()
+                .replace(R.id.settings_container, fragment)
+                .commit();
+
+/*            Intent intent = new Intent();
             intent.setClass(MainActivity.this, SettingsActivity.class);
             startActivityForResult(intent, RES_CODE_SETTINGS);
-        } else if(id == R.id.menu_dna_text) {
+*/        } else if(id == R.id.menu_dna_text) {
             if(mDnaAbiData == null)
                 return true;
             DnaTextDialog dialog = new DnaTextDialog(mDnaAbiData.nseq);
