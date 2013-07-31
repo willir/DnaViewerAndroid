@@ -24,28 +24,23 @@ public class GraphView extends View implements OnLongClickListener {
 
     private class Sizes {
 
-        private static final int GRAPH_HEADER_HEIGHT = 40;
-        private static final int GRPAH_PADDING_LEFT = 8;
-        private static final int GRPAH_PADDING_RIGHT = 5;
-        private static final int GRPAH_PADDING_BOTTOM = 8;
+        private static final int SPACE_HEADER_TO_GRAPH = 5;
 
         private static final float TOUCHS_SCREEN_PERCENT = (float) 0.50;
 
-        private static final int GRAPH_TEXT_Y_POS = 20;
-        private static final int GRAPH_TEXT_SIZE = 12;
-
         public int mGraphWidth;
 
-        public int mHeaderHeight = GRAPH_HEADER_HEIGHT;
-        public int mPaddingLeft = GRPAH_PADDING_LEFT;
-        public int mPaddingRight = GRPAH_PADDING_RIGHT;
-        public int mPaddingBottom = GRPAH_PADDING_BOTTOM;
-        public int mHorizontalPadding = mPaddingLeft + mPaddingRight;
+        public int mHeaderHeight = -1;
+        public int mPaddingLeft = -1;
+        public int mPaddingRight = -1;
+        public int mPaddingTop = -1;
+        public int mPaddingBottom = -1;
+        public int mHorizontalPadding = -1;
 
         public int mTouchsHeight;
 
-        public int mTextYPos = GRAPH_TEXT_Y_POS;
-        public int mTextSize = GRAPH_TEXT_SIZE;
+        public int mTextYPos = -1;
+        public int mTextSize = -1;
 
         public final int mCursorLineColor = Color.LTGRAY;
         public final int mCursorLineWidth = 1;
@@ -55,31 +50,52 @@ public class GraphView extends View implements OnLongClickListener {
 
         public float mXMult;
 
-        public Sizes(float xScale, float yScale) {
+        public Paint mPaintVerticalLine = new Paint();
+        public Paint mPaintLine = new Paint();
+        public Paint mPaintText = new Paint();
+
+        public Sizes() {
             if(!hasData())
                 return;
 
+            float xScale = mSettingsUtils.getXScale();
+            mTextSize = mSettingsUtils.getFontSize();
             int height = getHeight();
 
             mXMult = xScale;
 
-            mHeaderHeight = GRAPH_HEADER_HEIGHT;
-            mPaddingLeft = GRPAH_PADDING_LEFT;
-            mPaddingRight = GRPAH_PADDING_RIGHT;
-            mPaddingBottom = GRPAH_PADDING_BOTTOM;
+            mPaddingTop = getPaddingTop();
+            mPaddingLeft = getPaddingLeft();
+            mPaddingRight = getPaddingRight();
+            mPaddingBottom = getPaddingBottom();
+
+            mTextYPos = mPaddingTop + mTextSize;
+
             mHorizontalPadding = mPaddingLeft + mPaddingRight;
+            mHeaderHeight = mPaddingTop + mTextYPos + SPACE_HEADER_TO_GRAPH;
 
             mTouchsHeight = (int) (height * TOUCHS_SCREEN_PERCENT);
 
-            mTextYPos = GRAPH_TEXT_Y_POS;
-            mTextSize = GRAPH_TEXT_SIZE;
-
             mGraphWidth = (int) Math.ceil(mDnaData.lastNonTrashPoint * mXMult + mHorizontalPadding);
+
+            settingPaints();
+        }
+
+        private void settingPaints() {
+            mPaintLine.setStrokeWidth(mLineStrokeWidth);
+
+            Typeface tf = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
+            mPaintText.setStrokeWidth(mTextStrokeWidth);
+            mPaintText.setTypeface(tf);
+            mPaintText.setTextSize(mTextSize);
+
+            mPaintVerticalLine.setColor(mCursorLineColor);
+            mPaintVerticalLine.setStrokeWidth(mCursorLineWidth);
         }
     }
 
     private void reinitSizes() {
-        mSizes = new Sizes(mSettingsUtils.getXScale(), 1);
+        mSizes = new Sizes();
     }
 
     private Sizes getSizes() {
@@ -99,9 +115,6 @@ public class GraphView extends View implements OnLongClickListener {
         BASES_MAP_COLOR = Collections.unmodifiableMap(basesMapColor);
     }
 
-    private Paint mPaintVerticalLine = new Paint();
-    private Paint mPaintLine = new Paint();
-    private Paint mPaintText = new Paint();
     private float lastClickXOrd = 0;
     private float verticalLineXOrd = 0;
 
@@ -126,22 +139,6 @@ public class GraphView extends View implements OnLongClickListener {
     private void init(Context ctx) {
         mSettingsUtils = SettingsUtils.getInstance(ctx);
         reinitSizes();
-        settingPaints();
-    }
-
-    private void settingPaints() {
-        Sizes sizes = getSizes();
-
-        mPaintLine.setStrokeWidth(sizes.mLineStrokeWidth);
-
-        Typeface tf = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
-        mPaintText.setStrokeWidth(sizes.mTextStrokeWidth);
-        mPaintText.setTypeface(tf);
-        mPaintText.setTextSize(sizes.mTextSize);
-
-        mPaintVerticalLine.setColor(sizes.mCursorLineColor);
-        mPaintVerticalLine.setStrokeWidth(sizes.mCursorLineWidth);
-
         this.setOnLongClickListener(this);
     }
 
@@ -176,14 +173,14 @@ public class GraphView extends View implements OnLongClickListener {
     private void drawSequenceText(Canvas canvas) {
         Sizes sizes = getSizes();
 
-        float charHalfWidth = mPaintText.measureText("C") / 2;
+        float charHalfWidth = sizes.mPaintText.measureText("C") / 2;
         for (int iloop = 0; iloop < mDnaData.basePositions.length; iloop++) {
             char chr = mDnaData.nseq.charAt(iloop);
             float xPos = mDnaData.basePositions[iloop] * sizes.mXMult;
             xPos += sizes.mPaddingLeft - charHalfWidth;
 
-            mPaintText.setColor(BASES_MAP_COLOR.get(chr));
-            canvas.drawText(Character.toString(chr), xPos, sizes.mTextYPos, mPaintText);
+            sizes.mPaintText.setColor(BASES_MAP_COLOR.get(chr));
+            canvas.drawText(Character.toString(chr), xPos, sizes.mTextYPos, sizes.mPaintText);
         }
     }
 
@@ -194,13 +191,15 @@ public class GraphView extends View implements OnLongClickListener {
         if (!hasData())
             return;
 
+        Sizes sizes = getSizes();
+
         for (int ibase = 0; ibase < 4; ibase++) {
-            mPaintLine.setColor(BASES_MAP_COLOR.get(mDnaData.basesOrder.charAt(ibase)));
-            drawSequenceGraph(canvas, ibase, mPaintLine);
+            sizes.mPaintLine.setColor(BASES_MAP_COLOR.get(mDnaData.basesOrder.charAt(ibase)));
+            drawSequenceGraph(canvas, ibase, sizes.mPaintLine);
         }
         drawSequenceText(canvas);
         if (verticalLineXOrd > 0) {
-            canvas.drawLine(verticalLineXOrd, 0, verticalLineXOrd, getHeight(), mPaintVerticalLine);
+            canvas.drawLine(verticalLineXOrd, 0, verticalLineXOrd, getHeight(), sizes.mPaintVerticalLine);
         }
     }
 

@@ -29,7 +29,7 @@ public class DnaTextDialog extends DialogFragment {
         dnaEditText.setText(mDnaText);
 
         builder.setView(view);
-        builder.setPositiveButton(R.string.ok, new OnClickListener() {
+        builder.setPositiveButton(android.R.string.ok, new OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 getDialog().cancel();

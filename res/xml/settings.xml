@@ -10,7 +10,17 @@
 		        android:summary=""
 		        android:title="@string/pref_x_scale_title"
 		        android:entries="@array/pref_x_scales"
-		        android:entryValues="@array/pref_x_scales"/>
+		        android:entryValues="@array/pref_x_scales"
+		        android:defaultValue="@string/pref_default_x_scale"/>
+
+        <ListPreference
+		        android:dialogTitle="@string/pref_font_size_title"
+		        android:key="pref_font_size"
+		        android:summary=""
+		        android:title="@string/pref_font_size_title"
+		        android:entries="@array/pref_font_size"
+		        android:entryValues="@array/pref_font_size"
+		        android:defaultValue="@string/pref_default_font_size"/>
 
     </PreferenceCategory>
 

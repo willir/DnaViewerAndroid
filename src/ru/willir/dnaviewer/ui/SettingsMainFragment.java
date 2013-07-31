@@ -42,6 +42,7 @@ public class SettingsMainFragment extends PreferenceFragment implements OnShared
     private Callbacks mCallbacks = sDummyCallbacks;
 
     private ListPreference mXScalePref = null;
+    private ListPreference mFontSizePref = null;
     private SettingsUtils mSettingsUtils = null;
 
     @Override
@@ -51,15 +52,20 @@ public class SettingsMainFragment extends PreferenceFragment implements OnShared
 
         mSettingsUtils = SettingsUtils.getInstance(getActivity());
         mXScalePref = (ListPreference) findPreference(Constants.PREF_KEY_X_SCALE);
+        mFontSizePref = (ListPreference) findPreference(Constants.PREF_KEY_FONT_SIZE);
 
         setDefaults();
     }
 
     private void setDefaults() {
-        String xScaleDef = mSettingsUtils.getXScaleAsString();
-        int xScaleDefIdx = ArrayExtn.searchArr(xScaleDef, mXScalePref.getEntryValues());
-        xScaleDefIdx = (xScaleDefIdx != -1) ? xScaleDefIdx : 0;
-        mXScalePref.setValueIndex(xScaleDefIdx);
+        setValToListPreference(mXScalePref, mSettingsUtils.getXScaleAsString());
+        setValToListPreference(mFontSizePref, mSettingsUtils.getFontSizeAsString());
+    }
+
+    private void setValToListPreference(ListPreference pref, String val) {
+        int idx = ArrayExtn.searchArr(val, pref.getEntryValues());
+        idx = (idx != -1) ? idx : 0;
+        pref.setValueIndex(idx);
     }
 
     @Override

@@ -16,18 +16,28 @@ public class SettingsUtils {
     }
 
     private Context mContext;
+    private SharedPreferences mPrefs;
 
     private SettingsUtils(Context ctx) {
-        mContext = ctx;
+        mContext = ctx.getApplicationContext();
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
     }
 
     public String getXScaleAsString() {
         String defVal = mContext.getString(R.string.pref_default_x_scale);
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-        return prefs.getString(Constants.PREF_KEY_X_SCALE, defVal);
+        return mPrefs.getString(Constants.PREF_KEY_X_SCALE, defVal);
     }
 
     public float getXScale() {
         return Float.parseFloat(getXScaleAsString());
+    }
+
+    public String getFontSizeAsString() {
+        String defVal = mContext.getString(R.string.pref_default_font_size);
+        return mPrefs.getString(Constants.PREF_KEY_FONT_SIZE, defVal);
+    }
+
+    public int getFontSize() {
+        return Integer.parseInt(getFontSizeAsString());
     }
 }
