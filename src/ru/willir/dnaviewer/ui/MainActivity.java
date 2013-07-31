@@ -12,13 +12,14 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements SettingsMainFragment.Callbacks {
 
     private static final int RES_CODE_FILE_SELECT = 1;
     private static final int RES_CODE_SETTINGS = 2;
@@ -26,6 +27,7 @@ public class MainActivity extends Activity {
     private GraphView mGraphView = null;
     private DnaAbiData mDnaAbiData = null;
     private FrameLayout mSettingsContainer = null;
+    private SettingsMainFragment mSettingsMainFragment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +75,7 @@ public class MainActivity extends Activity {
                 Log.d(DLog.TAG, "dnaAbiData: " + mDnaAbiData);
                 mGraphView.setMinimumWidth(mDnaAbiData.lastNonTrashPoint + 100);
                 mGraphView.setDnaData(mDnaAbiData);
+                findViewById(android.R.id.content).requestLayout();
             }
             break;
         case RES_CODE_SETTINGS:
@@ -85,20 +88,24 @@ public class MainActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if(id == R.id.menu_load_file) {
+        if (id == R.id.menu_load_file) {
             showFileChooser();
-        } else if(id == R.id.menu_settings) {
+        } else if (id == R.id.menu_settings) {
 
-            SettingsMainFragment fragment = new SettingsMainFragment();
+            if(mSettingsMainFragment != null)
+                return true;
+
+            mSettingsContainer.setVisibility(View.VISIBLE);
+            mSettingsMainFragment = new SettingsMainFragment();
             getFragmentManager().beginTransaction()
-                .replace(R.id.settings_container, fragment)
-                .commit();
+                    .replace(R.id.settings_container, mSettingsMainFragment)
+                    .commit();
 
 /*            Intent intent = new Intent();
             intent.setClass(MainActivity.this, SettingsActivity.class);
             startActivityForResult(intent, RES_CODE_SETTINGS);
-*/        } else if(id == R.id.menu_dna_text) {
-            if(mDnaAbiData == null)
+*/      } else if (id == R.id.menu_dna_text) {
+            if (mDnaAbiData == null)
                 return true;
             DnaTextDialog dialog = new DnaTextDialog(mDnaAbiData.nseq);
             dialog.show(getFragmentManager(), Constants.TAG_DIALOG_DNA_TEXT);
@@ -111,6 +118,23 @@ public class MainActivity extends Activity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        mGraphView.onSettingsChanged();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(mSettingsMainFragment == null) {
+            super.onBackPressed();
+            return;
+        }
+
+        getFragmentManager().beginTransaction().remove(mSettingsMainFragment).commit();
+        mSettingsContainer.setVisibility(View.GONE);
+        mSettingsMainFragment = null;
+    }
+
+    @Override
+    public void onSettingsChanged() {
         mGraphView.onSettingsChanged();
     }
 }
