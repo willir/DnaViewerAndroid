@@ -7,11 +7,14 @@
 #include "ajfile.h"
 
 #include <string>
+#include <algorithm>    // std::copy
+
 
 CToJavaConverter* CToJavaConverter::instance = NULL;
 CToJavaConverter::CToJavaConverter(JNIEnv *env) {
 
 	this->jClDnaAbiData = NULL;
+	this->jClDnaAbiDataAddInfo = NULL;
 	this->jClIntArrClass = NULL;
 
 	this->jFld_DnaAbi_trace = NULL;
@@ -21,8 +24,11 @@ CToJavaConverter::CToJavaConverter(JNIEnv *env) {
 	this->jFld_DnaAbi_lastNonTrashPoint = NULL;
 	this->jFld_DnaAbi_tmax = NULL;
 	this->jFld_DnaAbi_basesOrder = NULL;
+	this->jFld_DnaAbi_mAddInfo = NULL;
+	this->jFld_DnaAbiAddInfo_doubleSignals = NULL;
 
 	this->jm_DnaAbi_init = NULL;
+	this->jm_DnaAbiAddInfo_init = NULL;
 	//--------------
 
 	if (env->GetJavaVM(&this->jvm) != 0) {
@@ -31,6 +37,7 @@ CToJavaConverter::CToJavaConverter(JNIEnv *env) {
 	}
 
 	jclass jClDnaAbiData = env->FindClass(PACKAGE_C_NAME"/utils/DnaAbiData");
+	jclass jClDnaAbiDataAddInfo = env->FindClass(PACKAGE_C_NAME"/utils/DnaAbiData$AddInfo");
 	jclass jClIntArrClass = env->FindClass("[I");
 	//--------------
 
@@ -41,12 +48,18 @@ CToJavaConverter::CToJavaConverter(JNIEnv *env) {
 	this->jFld_DnaAbi_lastNonTrashPoint = env->GetFieldID(jClDnaAbiData, "lastNonTrashPoint", "I");
 	this->jFld_DnaAbi_tmax = env->GetFieldID(jClDnaAbiData, "tmax", "I");
 	this->jFld_DnaAbi_basesOrder = env->GetFieldID(jClDnaAbiData, "basesOrder", "Ljava/lang/String;");
+	this->jFld_DnaAbi_mAddInfo = env->GetFieldID(jClDnaAbiData, "mAddInfo",
+			"L"PACKAGE_C_NAME"/utils/DnaAbiData$AddInfo;");
+	this->jFld_DnaAbiAddInfo_doubleSignals = env->GetFieldID(jClDnaAbiDataAddInfo, "doubleSignals",
+			"[I");
 	//--------------
 
 	this->jm_DnaAbi_init = env->GetMethodID(jClDnaAbiData, "<init>", "()V");
+	this->jm_DnaAbiAddInfo_init = env->GetMethodID(jClDnaAbiDataAddInfo, "<init>", "()V");
 	//--------------
 
 	this->jClDnaAbiData = (jclass) env->NewGlobalRef(jClDnaAbiData);
+	this->jClDnaAbiDataAddInfo = (jclass) env->NewGlobalRef(jClDnaAbiDataAddInfo);
 	this->jClIntArrClass = (jclass) env->NewGlobalRef(jClIntArrClass);
 	//--------------
 }
@@ -59,6 +72,8 @@ CToJavaConverter::~CToJavaConverter() {
 
 	if (this->jClDnaAbiData)
 		env->DeleteGlobalRef(this->jClDnaAbiData);
+	if (this->jClDnaAbiDataAddInfo)
+		env->DeleteGlobalRef(this->jClDnaAbiDataAddInfo);
 	if (this->jClIntArrClass)
 		env->DeleteGlobalRef(this->jClIntArrClass);
 }
@@ -95,6 +110,22 @@ jobject CToJavaConverter::abiReaderToJava(AbiReader *abiReader) {
 
 	env->SetObjectField(res, this->jFld_DnaAbi_basesOrder,
 			env->NewStringUTF(abiReader->basesOrder));
+
+	env->SetObjectField(res, this->jFld_DnaAbi_mAddInfo,
+			this->abiReaderAddInfoTojava(&abiReader->addInfo));
+
+	return res;
+}
+//********************************************************************************
+
+jobject CToJavaConverter::abiReaderAddInfoTojava(AbiReader::AddInfo *addInfo) {
+	JNIEnv *env = this->getEnv();
+	if (!env)
+		return NULL;
+
+	jobject res = env->NewObject(this->jClDnaAbiDataAddInfo, this->jm_DnaAbiAddInfo_init);
+	env->SetObjectField(res, this->jFld_DnaAbiAddInfo_doubleSignals,
+			this->getArrFromIntVector(addInfo->doubleSignals));
 
 	return res;
 }
@@ -153,6 +184,23 @@ jshortArray CToJavaConverter::getArrFromAjPShort(AjPShort ajArr) {
 	short *arr = ajShortShort(ajArr);
 	jshortArray res = env->NewShortArray(len);
 	env->SetShortArrayRegion(res, 0, (jsize) len, (short *) arr);
+
+	return res;
+}
+//********************************************************************************
+
+jintArray CToJavaConverter::getArrFromIntVector(const std::vector<int> &arrVect) {
+	JNIEnv *env = this->getEnv();
+	if (!env)
+		return NULL;
+
+	int *arr = new int[arrVect.size()];
+	std::copy(arrVect.begin(), arrVect.end(), arr);
+
+	jintArray res = env->NewIntArray(arrVect.size());
+	env->SetIntArrayRegion(res, 0, arrVect.size(), arr);
+
+	delete[] arr;
 
 	return res;
 }

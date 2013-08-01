@@ -4,6 +4,18 @@ import java.util.Arrays;
 
 public class DnaAbiData {
 
+    public static class AddInfo {
+        public int []doubleSignals;
+        @Override
+        public String toString() {
+            StringBuilder res = new StringBuilder();
+            res.append("{\n");
+            res.append("    doubleSignals:" + Arrays.toString(doubleSignals));
+            res.append("\n}");
+            return res.toString();
+        }
+    }
+
     public DnaAbiData() {
     };
 
@@ -14,6 +26,7 @@ public class DnaAbiData {
     public int lastNonTrashPoint;
     public int tmax;                // Max signal strength
     public String basesOrder;       // Sequnce bases order
+    public AddInfo mAddInfo;
 
     @Override
     public String toString() {
@@ -28,6 +41,7 @@ public class DnaAbiData {
         }
 
         res.append("TRACE: " + trace.length + ":" + trace[0].length + "\n");
+        res.append("mAddInfo:" + mAddInfo);
 /*        for (int i = 0; i < trace.length; i++) {
             res.append("trace[" + i + "]:");
             res.append(Arrays.toString(trace[i]));

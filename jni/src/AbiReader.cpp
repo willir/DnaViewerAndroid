@@ -15,6 +15,7 @@
 
 #include <iostream>     // std::cout, std::ios
 #include <sstream>      // std::ostringstream
+#include <algorithm>    // std::sort
 
 using namespace std;
 
@@ -25,6 +26,7 @@ AbiReader::AbiReader(const std::string &filePath) : filePath(filePath) {
     this->basePositions  = NULL;
 
     this->readSeq();
+    this->parseSeq();
 }
 //************************************************************************
 
@@ -177,3 +179,22 @@ end:
 }
 //*****************************************************************
 
+void AbiReader::parseSeq() {
+    ajuint len = ajShortLen(this->basePositions);
+
+    for (ajuint i=0; i<len; i++) {
+    	short basePos = ajShortGet(this->basePositions, i);
+    	int curBaseTrace[4];
+    	for(int j=0; j<4; j++) {
+    		curBaseTrace[j] = ajInt2dGet(this->trace, j, basePos);
+    	}
+    	sort(curBaseTrace, curBaseTrace + 4);
+    	double ratio = ((double) curBaseTrace[2]) / curBaseTrace[3];
+    	if(ratio > DOUBLE_SIGNAL_RATIO) {
+    		this->addInfo.doubleSignals.push_back(i);
+    		LOGD("%d: ratio:%f > DOUBLE_SIGNAL_RATIO:%f for: %c",
+    				i, ratio, DOUBLE_SIGNAL_RATIO, ajStrGetCharPos(this->nseq, i));
+    	}
+    }
+}
+//*****************************************************************

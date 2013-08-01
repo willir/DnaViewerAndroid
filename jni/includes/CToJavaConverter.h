@@ -40,6 +40,7 @@ private:
 	static CToJavaConverter* instance;
 
 	jclass jClDnaAbiData;
+	jclass jClDnaAbiDataAddInfo;
 	jclass jClIntArrClass;
 
 	jfieldID jFld_DnaAbi_trace;
@@ -49,8 +50,12 @@ private:
 	jfieldID jFld_DnaAbi_lastNonTrashPoint;
 	jfieldID jFld_DnaAbi_tmax;
 	jfieldID jFld_DnaAbi_basesOrder;
+	jfieldID jFld_DnaAbi_mAddInfo;
+	jfieldID jFld_DnaAbiAddInfo_doubleSignals;
+
 
 	jmethodID jm_DnaAbi_init;
+	jmethodID jm_DnaAbiAddInfo_init;
 
 	JavaVM *jvm;
 
@@ -61,8 +66,11 @@ private:
 	 */
 	JNIEnv *getEnv();
 
+	jobject abiReaderAddInfoTojava(AbiReader::AddInfo *addInfo);
+
 	jobjectArray get2DArrFromAjPInt2d(AjPInt2d arr);
-	jshortArray getArrFromAjPShort(AjPShort arr);
+	jshortArray getArrFromAjPShort(AjPShort ajArr);
+	jintArray getArrFromIntVector(const std::vector<int> &arr);
 };
 
 #endif

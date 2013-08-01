@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
+import ru.willir.dnaviewer.R;
 import ru.willir.dnaviewer.utils.DLog;
 import ru.willir.dnaviewer.utils.DnaAbiData;
 import ru.willir.dnaviewer.utils.SettingsUtils;
@@ -11,6 +12,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -37,6 +40,9 @@ public class GraphView extends View implements OnLongClickListener {
         public int mPaddingBottom = -1;
         public int mHorizontalPadding = -1;
 
+        public Point mTopLeftEdge      = null;
+        public Point mBottomRightEdge  = null;
+
         public int mTouchsHeight;
 
         public int mTextYPos = -1;
@@ -53,6 +59,7 @@ public class GraphView extends View implements OnLongClickListener {
         public Paint mPaintVerticalLine = new Paint();
         public Paint mPaintLine = new Paint();
         public Paint mPaintText = new Paint();
+        public Paint mPaintDoubleSignal = new Paint();
 
         public Sizes() {
             if(!hasData())
@@ -78,6 +85,9 @@ public class GraphView extends View implements OnLongClickListener {
 
             mGraphWidth = (int) Math.ceil(mDnaData.lastNonTrashPoint * mXMult + mHorizontalPadding);
 
+            mTopLeftEdge     = new Point(mPaddingLeft, mPaddingTop);
+            mBottomRightEdge = new Point(mGraphWidth - mPaddingRight, height - mPaddingBottom);
+
             settingPaints();
         }
 
@@ -91,6 +101,8 @@ public class GraphView extends View implements OnLongClickListener {
 
             mPaintVerticalLine.setColor(mCursorLineColor);
             mPaintVerticalLine.setStrokeWidth(mCursorLineWidth);
+
+            mPaintDoubleSignal.setColor(getResources().getColor(R.color.double_signal_rect));
         }
     }
 
@@ -146,6 +158,39 @@ public class GraphView extends View implements OnLongClickListener {
         return mDnaData != null;
     }
 
+    private void drawRectForDoubleSignals(Canvas canvas) {
+        Sizes sizes = getSizes();
+        int maxIdx = mDnaData.basePositions.length - 1;
+
+        for (int baseIdx : mDnaData.mAddInfo.doubleSignals) {
+            float xLeft;
+            float xRight;
+            float curPos = mDnaData.basePositions[baseIdx];
+
+            if(baseIdx > 0) {
+                float prevPos = mDnaData.basePositions[baseIdx - 1];
+                xLeft = prevPos + (curPos - prevPos) / 2;
+                xLeft *= sizes.mXMult;
+            } else {
+                xLeft = sizes.mTopLeftEdge.x;
+            }
+
+            if(baseIdx < maxIdx) {
+                float nextPos = mDnaData.basePositions[baseIdx + 1];
+                xRight = nextPos - (nextPos - curPos) / 2;
+                xRight *= sizes.mXMult;
+            } else {
+                xRight = sizes.mBottomRightEdge.x;
+            }
+
+            xLeft += sizes.mTopLeftEdge.x;
+            xRight += sizes.mTopLeftEdge.x;
+
+            RectF rect = new RectF(xLeft, sizes.mTopLeftEdge.y, xRight, sizes.mBottomRightEdge.y);
+            canvas.drawRect(rect, sizes.mPaintDoubleSignal);
+        }
+    }
+
     private void drawSequenceGraph(Canvas canvas, int ibase, Paint paint) {
         Sizes sizes = getSizes();
 
@@ -159,7 +204,7 @@ public class GraphView extends View implements OnLongClickListener {
             int yNormalized = (int) (y / mDnaData.tmax * yMax);
             yNormalized = yMax - yNormalized + sizes.mHeaderHeight;
 
-            float xPoint = sizes.mPaddingLeft + x * sizes.mXMult;
+            float xPoint = sizes.mTopLeftEdge.x + x * sizes.mXMult;
             float yPoint = yNormalized;
 
             if (x != 0)
@@ -176,8 +221,10 @@ public class GraphView extends View implements OnLongClickListener {
         float charHalfWidth = sizes.mPaintText.measureText("C") / 2;
         for (int iloop = 0; iloop < mDnaData.basePositions.length; iloop++) {
             char chr = mDnaData.nseq.charAt(iloop);
-            float xPos = mDnaData.basePositions[iloop] * sizes.mXMult;
-            xPos += sizes.mPaddingLeft - charHalfWidth;
+            float xPos = mDnaData.basePositions[iloop];
+            xPos *= sizes.mXMult;
+            xPos -= charHalfWidth;
+            xPos += sizes.mTopLeftEdge.x;
 
             sizes.mPaintText.setColor(BASES_MAP_COLOR.get(chr));
             canvas.drawText(Character.toString(chr), xPos, sizes.mTextYPos, sizes.mPaintText);
@@ -198,6 +245,7 @@ public class GraphView extends View implements OnLongClickListener {
             drawSequenceGraph(canvas, ibase, sizes.mPaintLine);
         }
         drawSequenceText(canvas);
+        drawRectForDoubleSignals(canvas);
         if (verticalLineXOrd > 0) {
             canvas.drawLine(verticalLineXOrd, 0, verticalLineXOrd, getHeight(), sizes.mPaintVerticalLine);
         }
