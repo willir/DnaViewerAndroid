@@ -40,4 +40,9 @@ public class SettingsUtils {
     public int getFontSize() {
         return Integer.parseInt(getFontSizeAsString());
     }
+
+    public boolean getShowDoubleSignal() {
+        boolean defVal = Boolean.parseBoolean(mContext.getString(R.string.pref_default_show_double_signal));
+        return mPrefs.getBoolean(Constants.PREF_KEY_SHOW_DOUBLE_SIGNAL, defVal);
+    }
 }

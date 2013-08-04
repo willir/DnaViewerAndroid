@@ -22,6 +22,12 @@
 		        android:entryValues="@array/pref_font_size"
 		        android:defaultValue="@string/pref_default_font_size"/>
 
+        <CheckBoxPreference
+                android:key="pref_show_double_signal"
+                android:title="@string/pref_show_double_signal_title"
+                android:summary="@string/pref_show_double_signal_summary"
+                android:defaultValue="@string/pref_default_show_double_signal" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

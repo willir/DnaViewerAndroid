@@ -56,6 +56,8 @@ public class GraphView extends View implements OnLongClickListener {
 
         public float mXMult;
 
+        public boolean mShowDoubleSignal;
+
         public Paint mPaintVerticalLine = new Paint();
         public Paint mPaintLine = new Paint();
         public Paint mPaintText = new Paint();
@@ -68,6 +70,7 @@ public class GraphView extends View implements OnLongClickListener {
             float xScale = mSettingsUtils.getXScale();
             mTextSize = mSettingsUtils.getFontSize();
             int height = getHeight();
+            mShowDoubleSignal = mSettingsUtils.getShowDoubleSignal();
 
             mXMult = xScale;
 
@@ -245,7 +248,8 @@ public class GraphView extends View implements OnLongClickListener {
             drawSequenceGraph(canvas, ibase, sizes.mPaintLine);
         }
         drawSequenceText(canvas);
-        drawRectForDoubleSignals(canvas);
+        if(sizes.mShowDoubleSignal)
+            drawRectForDoubleSignals(canvas);
         if (verticalLineXOrd > 0) {
             canvas.drawLine(verticalLineXOrd, 0, verticalLineXOrd, getHeight(), sizes.mPaintVerticalLine);
         }
@@ -288,6 +292,7 @@ public class GraphView extends View implements OnLongClickListener {
     public void onSettingsChanged() {
         reinitSizes();
         requestLayout();
+        invalidate();
     }
 
     @Override

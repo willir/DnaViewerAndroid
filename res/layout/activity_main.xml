@@ -21,7 +21,7 @@
 
     <FrameLayout
 	        android:id="@+id/settings_container"
-	        android:layout_width="300dp"
+	        android:layout_width="400dp"
 	        android:visibility="gone"
 	        android:background="@drawable/border_settings_fragment"
 	        android:layout_height="fill_parent" />

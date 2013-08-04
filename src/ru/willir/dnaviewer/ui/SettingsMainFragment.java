@@ -1,3 +1,4 @@
+
 package ru.willir.dnaviewer.ui;
 
 import ru.willir.dnaviewer.R;
@@ -8,11 +9,13 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 
-public class SettingsMainFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener {
+public class SettingsMainFragment extends PreferenceFragment implements
+        OnSharedPreferenceChangeListener {
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -43,6 +46,8 @@ public class SettingsMainFragment extends PreferenceFragment implements OnShared
 
     private ListPreference mXScalePref = null;
     private ListPreference mFontSizePref = null;
+    private CheckBoxPreference mShowDoubleSignal = null;
+
     private SettingsUtils mSettingsUtils = null;
 
     @Override
@@ -53,6 +58,7 @@ public class SettingsMainFragment extends PreferenceFragment implements OnShared
         mSettingsUtils = SettingsUtils.getInstance(getActivity());
         mXScalePref = (ListPreference) findPreference(Constants.PREF_KEY_X_SCALE);
         mFontSizePref = (ListPreference) findPreference(Constants.PREF_KEY_FONT_SIZE);
+        mShowDoubleSignal = (CheckBoxPreference) findPreference(Constants.PREF_KEY_SHOW_DOUBLE_SIGNAL);
 
         setDefaults();
     }
@@ -60,6 +66,8 @@ public class SettingsMainFragment extends PreferenceFragment implements OnShared
     private void setDefaults() {
         setValToListPreference(mXScalePref, mSettingsUtils.getXScaleAsString());
         setValToListPreference(mFontSizePref, mSettingsUtils.getFontSizeAsString());
+
+        mShowDoubleSignal.setChecked(mSettingsUtils.getShowDoubleSignal());
     }
 
     private void setValToListPreference(ListPreference pref, String val) {

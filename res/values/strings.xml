@@ -11,9 +11,12 @@
     <string name="pref_main_category_title">General</string>
     <string name="pref_x_scale_title">X Scale</string>
     <string name="pref_font_size_title">Font Size</string>
+    <string name="pref_show_double_signal_title">Double Signal</string>
+    <string name="pref_show_double_signal_summary">Show Double Signal</string>
 
     <string name="empty"></string>
 
     <string name="pref_default_x_scale">2</string>
     <string name="pref_default_font_size">12</string>
+    <string name="pref_default_show_double_signal">true</string>
 </resources>

@@ -4,5 +4,6 @@ public class Constants {
     public static float DEFAULT_X_SCALE = 1;
     public static final String PREF_KEY_X_SCALE = "pref_x_scale";
     public static final String PREF_KEY_FONT_SIZE = "pref_font_size";
+    public static final String PREF_KEY_SHOW_DOUBLE_SIGNAL = "pref_show_double_signal";
     public static String TAG_DIALOG_DNA_TEXT = "tag_dialog_dna_text";
 }
